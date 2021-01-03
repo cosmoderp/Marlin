@@ -57,16 +57,16 @@ void GcodeSuite::M118() {
     if (WITHIN(port, 0, NUM_SERIAL))
       serial_port_index = (
         port == 0 ? SERIAL_BOTH
-        : port == 1 ? SERIAL_PORT
-        #ifdef SERIAL_PORT_2
-          : port == 2 ? SERIAL_PORT_2
+        : port == 1 ? 0
+        #if HAS_MULTI_SERIAL
+          : port == 2 ? 1
         #endif
         : SERIAL_PORT
       );
   #endif
 
   if (hasE) SERIAL_ECHO_START();
-  if (hasA) SERIAL_ECHOPGM("// ");
+  if (hasA) SERIAL_ECHOPGM("//");
   SERIAL_ECHOLN(p);
 
   TERN_(HAS_MULTI_SERIAL, serial_port_index = old_serial);

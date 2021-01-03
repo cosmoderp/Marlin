@@ -59,10 +59,14 @@ inline float rounded_mesh_value() {
 static void _lcd_mesh_fine_tune(PGM_P const msg) {
   ui.defer_status_screen();
   if (ubl.encoder_diff) {
-    mesh_edit_accumulator += ubl.encoder_diff > 0 ? 0.005f : -0.005f;
+    mesh_edit_accumulator += TERN(IS_TFTGLCD_PANEL,
+      ubl.encoder_diff * 0.005f / ENCODER_PULSES_PER_STEP,
+      ubl.encoder_diff > 0 ? 0.005f : -0.005f
+    );
     ubl.encoder_diff = 0;
-    ui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
+    IF_DISABLED(IS_TFTGLCD_PANEL, ui.refresh(LCDVIEW_CALL_REDRAW_NEXT));
   }
+  TERN_(IS_TFTGLCD_PANEL, ui.refresh(LCDVIEW_CALL_REDRAW_NEXT));
 
   if (ui.should_draw()) {
     const float rounded_f = rounded_mesh_value();
@@ -184,11 +188,10 @@ void _lcd_ubl_edit_mesh() {
    */
   void _lcd_ubl_validate_custom_mesh() {
     char ubl_lcd_gcode[24];
-    const int16_t temp = TERN(HAS_HEATED_BED, custom_bed_temp, 0);
     sprintf_P(ubl_lcd_gcode, PSTR("G28\nG26 C P H%" PRIi16 TERN_(HAS_HEATED_BED, " B%" PRIi16))
       , custom_hotend_temp
       #if HAS_HEATED_BED
-        , temp
+        , custom_bed_temp
       #endif
     );
     queue.inject(ubl_lcd_gcode);
@@ -410,6 +413,10 @@ void _lcd_ubl_map_edit_cmd() {
  * UBL LCD Map Movement
  */
 void ubl_map_move_to_xy() {
+  const xy_pos_t xy = { ubl.mesh_index_to_xpos(x_plot), ubl.mesh_index_to_ypos(y_plot) };
+
+  // Some printers have unreachable areas in the mesh. Skip the move if unreachable.
+  if (!position_is_reachable(xy)) return;
 
   #if ENABLED(DELTA)
     if (current_position.z > delta_clip_start_height) { // Make sure the delta has fully free motion
@@ -419,10 +426,8 @@ void ubl_map_move_to_xy() {
     }
   #endif
 
-  // Set the nozzle position to the mesh point
-  current_position.set(ubl.mesh_index_to_xpos(x_plot), ubl.mesh_index_to_ypos(y_plot));
-
-  // Use the built-in manual move handler
+  // Use the built-in manual move handler to move to the mesh point.
+  ui.manual_move.set_destination(xy);
   ui.manual_move.soon(ALL_AXES);
 }
 
@@ -521,7 +526,7 @@ void _ubl_map_screen_homing() {
  */
 void _ubl_goto_map_screen() {
   if (planner.movesplanned()) return;     // The ACTION_ITEM will do nothing
-  if (!all_axes_known()) {
+  if (!all_axes_trusted()) {
     set_all_unhomed();
     queue.inject_P(G28_STR);
   }

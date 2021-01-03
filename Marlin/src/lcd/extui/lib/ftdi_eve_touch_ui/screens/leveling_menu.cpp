@@ -17,7 +17,11 @@
  *   GNU General Public License for more details.                           *
  *                                                                          *
  *   To view a copy of the GNU General Public License, go to the following  *
+<<<<<<< HEAD
  *   location: <https://www.gnu.org/licenses/>.                              *
+=======
+ *   location: <https://www.gnu.org/licenses/>.                             *
+>>>>>>> origin/bugfix-2.0.x
  ****************************************************************************/
 
 #include "../config.h"
@@ -34,12 +38,21 @@ using namespace FTDI;
 using namespace ExtUI;
 using namespace Theme;
 
+<<<<<<< HEAD
 #ifdef TOUCH_UI_PORTRAIT
   #define GRID_ROWS 9
   #define GRID_COLS 2
   #define TITLE_POS          BTN_POS(1,1), BTN_SIZE(2,1)
   #define LEVEL_BED_POS      BTN_POS(1,2), BTN_SIZE(2,1)
   #define LEVEL_AXIS_POS     BTN_POS(1,3), BTN_SIZE(2,1)
+=======
+#if ENABLED(TOUCH_UI_PORTRAIT)
+  #define GRID_ROWS 9
+  #define GRID_COLS 2
+  #define TITLE_POS          BTN_POS(1,1), BTN_SIZE(2,1)
+  #define LEVEL_AXIS_POS     BTN_POS(1,2), BTN_SIZE(2,1)
+  #define LEVEL_BED_POS      BTN_POS(1,3), BTN_SIZE(2,1)
+>>>>>>> origin/bugfix-2.0.x
   #define SHOW_MESH_POS      BTN_POS(1,4), BTN_SIZE(2,1)
   #define BLTOUCH_TITLE_POS  BTN_POS(1,6), BTN_SIZE(2,1)
   #define BLTOUCH_RESET_POS  BTN_POS(1,7), BTN_SIZE(1,1)
@@ -49,8 +62,13 @@ using namespace Theme;
   #define GRID_ROWS 7
   #define GRID_COLS 2
   #define TITLE_POS          BTN_POS(1,1), BTN_SIZE(2,1)
+<<<<<<< HEAD
   #define LEVEL_BED_POS      BTN_POS(1,2), BTN_SIZE(2,1)
   #define LEVEL_AXIS_POS     BTN_POS(1,3), BTN_SIZE(2,1)
+=======
+  #define LEVEL_AXIS_POS     BTN_POS(1,2), BTN_SIZE(2,1)
+  #define LEVEL_BED_POS      BTN_POS(1,3), BTN_SIZE(2,1)
+>>>>>>> origin/bugfix-2.0.x
   #define SHOW_MESH_POS      BTN_POS(1,4), BTN_SIZE(2,1)
   #define BLTOUCH_TITLE_POS  BTN_POS(1,5), BTN_SIZE(2,1)
   #define BLTOUCH_RESET_POS  BTN_POS(1,6), BTN_SIZE(1,1)
@@ -69,6 +87,7 @@ void LevelingMenu::onRedraw(draw_mode_t what) {
   if (what & FOREGROUND) {
     CommandProcessor cmd;
     cmd.font(font_large)
+<<<<<<< HEAD
        .text(TITLE_POS, GET_TEXT_F(MSG_LEVELING))
        .font(font_medium).colors(normal_btn)
        .tag(2).button(LEVEL_BED_POS, GET_TEXT_F(MSG_LEVEL_BED))
@@ -86,6 +105,25 @@ void LevelingMenu::onRedraw(draw_mode_t what) {
          .tag(6).button(BLTOUCH_TEST_POS,  GET_TEXT_F(MSG_BLTOUCH_SELFTEST));
     #endif
     cmd.colors(action_btn)
+=======
+       .cmd(COLOR_RGB(bg_text_enabled))
+       .text(TITLE_POS, GET_TEXT_F(MSG_LEVELING))
+    #if ENABLED(BLTOUCH)
+       .text(BLTOUCH_TITLE_POS, GET_TEXT_F(MSG_BLTOUCH))
+    #endif
+       .font(font_medium).colors(normal_btn)
+    #if EITHER(Z_STEPPER_AUTO_ALIGN,MECHANICAL_GANTRY_CALIBRATION)
+       .tag(2).button(LEVEL_AXIS_POS, GET_TEXT_F(MSG_AUTOLEVEL_X_AXIS))
+    #endif
+       .tag(3).button(LEVEL_BED_POS, GET_TEXT_F(MSG_LEVEL_BED))
+       .enabled(ENABLED(HAS_MESH))
+       .tag(4).button(SHOW_MESH_POS, GET_TEXT_F(MSG_SHOW_MESH))
+    #if ENABLED(BLTOUCH)
+       .tag(5).button(BLTOUCH_RESET_POS, GET_TEXT_F(MSG_BLTOUCH_RESET))
+       .tag(6).button(BLTOUCH_TEST_POS,  GET_TEXT_F(MSG_BLTOUCH_SELFTEST))
+    #endif
+       .colors(action_btn)
+>>>>>>> origin/bugfix-2.0.x
        .tag(1).button(BACK_POS, GET_TEXT_F(MSG_BACK));
   }
 }
@@ -93,20 +131,35 @@ void LevelingMenu::onRedraw(draw_mode_t what) {
 bool LevelingMenu::onTouchEnd(uint8_t tag) {
   switch (tag) {
     case 1: GOTO_PREVIOUS();                   break;
+<<<<<<< HEAD
     case 2:
     #ifndef BED_LEVELING_COMMANDS
       #define BED_LEVELING_COMMANDS "G29"
     #endif
     #if HAS_MESH
+=======
+    #if EITHER(Z_STEPPER_AUTO_ALIGN,MECHANICAL_GANTRY_CALIBRATION)
+    case 2: SpinnerDialogBox::enqueueAndWait_P(F("G34")); break;
+    #endif
+    case 3:
+    #ifndef BED_LEVELING_COMMANDS
+      #define BED_LEVELING_COMMANDS "G29"
+    #endif
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+>>>>>>> origin/bugfix-2.0.x
       BedMeshScreen::startMeshProbe();
     #else
       SpinnerDialogBox::enqueueAndWait_P(F(BED_LEVELING_COMMANDS));
     #endif
     break;
+<<<<<<< HEAD
     #ifdef AXIS_LEVELING_COMMANDS
     case 3: SpinnerDialogBox::enqueueAndWait_P(F(AXIS_LEVELING_COMMANDS)); break;
     #endif
     #if HAS_MESH
+=======
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+>>>>>>> origin/bugfix-2.0.x
     case 4: GOTO_SCREEN(BedMeshScreen); break;
     #endif
     #if ENABLED(BLTOUCH)
@@ -118,4 +171,8 @@ bool LevelingMenu::onTouchEnd(uint8_t tag) {
   return true;
 }
 
+<<<<<<< HEAD
 #endif // BOTH(TOUCH_UI_FTDI_EVE,HAS_LEVELING)
+=======
+#endif // TOUCH_UI_FTDI_EVE && HAS_LEVELING
+>>>>>>> origin/bugfix-2.0.x

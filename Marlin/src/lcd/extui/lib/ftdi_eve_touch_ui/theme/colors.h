@@ -18,7 +18,7 @@
  *   GNU General Public License for more details.                           *
  *                                                                          *
  *   To view a copy of the GNU General Public License, go to the following  *
- *   location: <https://www.gnu.org/licenses/>.                              *
+ *   location: <https://www.gnu.org/licenses/>.                             *
  ****************************************************************************/
 
 #pragma once
@@ -127,7 +127,7 @@ namespace Theme {
   #if ENABLED(TOUCH_UI_COCOA_PRESS)
     constexpr uint32_t syringe_rgb          = 0xFFFFFF;
     constexpr uint32_t fluid_rgb            = accent_color_5;
-  #else                                    
+  #else
     constexpr uint32_t syringe_rgb          = accent_color_5;
     constexpr uint32_t fluid_rgb            = accent_color_3;
   #endif

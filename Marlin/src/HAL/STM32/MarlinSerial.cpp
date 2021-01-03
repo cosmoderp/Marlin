@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
 #if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)
 
 #include "../../inc/MarlinConfig.h"
@@ -49,8 +48,8 @@
   DECLARE_SERIAL_PORT_EXP(SERIAL_PORT_2)
 #endif
 
-#if defined(DGUS_SERIAL_PORT) && DGUS_SERIAL_PORT >= 0
-  DECLARE_SERIAL_PORT_EXP(DGUS_SERIAL_PORT)
+#if defined(LCD_SERIAL_PORT) && LCD_SERIAL_PORT >= 0
+  DECLARE_SERIAL_PORT_EXP(LCD_SERIAL_PORT)
 #endif
 
 void MarlinSerial::begin(unsigned long baud, uint8_t config) {

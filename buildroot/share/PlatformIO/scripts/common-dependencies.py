@@ -16,6 +16,30 @@ except ImportError:
 	# PIO >= 4.4
 	from platformio.package.meta import PackageSpec as PackageManager
 
+PIO_VERSION_MIN = (5, 0, 3)
+try:
+	from platformio import VERSION as PIO_VERSION
+	weights = (1000, 100, 1)
+	version_min = sum([x[0] * float(re.sub(r'[^0-9]', '.', str(x[1]))) for x in zip(weights, PIO_VERSION_MIN)])
+	version_cur = sum([x[0] * float(re.sub(r'[^0-9]', '.', str(x[1]))) for x in zip(weights, PIO_VERSION)])
+	if version_cur < version_min:
+		print()
+		print("**************************************************")
+		print("******      An update to PlatformIO is      ******")
+		print("******  required to build Marlin Firmware.  ******")
+		print("******                                      ******")
+		print("******      Minimum version: ", PIO_VERSION_MIN, "    ******")
+		print("******      Current Version: ", PIO_VERSION, "    ******")
+		print("******                                      ******")
+		print("******   Update PlatformIO and try again.   ******")
+		print("**************************************************")
+		print()
+		exit(1)
+except SystemExit:
+	exit(1)
+except:
+	print("Can't detect PlatformIO Version")
+
 Import("env")
 
 #print(env.Dump())
@@ -39,6 +63,12 @@ def parse_pkg_uri(spec):
 FEATURE_CONFIG = {}
 
 def add_to_feat_cnf(feature, flines):
+
+	try:
+		feat = FEATURE_CONFIG[feature]
+	except:
+		FEATURE_CONFIG[feature] = {}
+
 	feat = FEATURE_CONFIG[feature]
 	atoms = re.sub(',\\s*', '\n', flines).strip().split('\n')
 	for dep in atoms:
@@ -202,7 +232,8 @@ def search_compiler():
 		for filepath in os.listdir(pathdir):
 			if not filepath.endswith(gcc):
 				continue
-
+			# Use entire path to not rely on env PATH
+			filepath = os.path.sep.join([pathdir, filepath])
 			# Cache the g++ path to no search always
 			if os.path.exists(ENV_BUILD_PATH):
 				blab('Caching g++ for current env')
@@ -227,7 +258,7 @@ def load_marlin_features():
 	build_flags = env.ParseFlagsExtended(build_flags)
 
 	cxx = search_compiler()
-	cmd = [cxx]
+	cmd = ['"' + cxx + '"']
 
 	# Build flags from board.json
 	#if 'BOARD' in env:
@@ -238,7 +269,7 @@ def load_marlin_features():
 		else:
 			cmd += ['-D' + s]
 
-	cmd += ['-w -dM -E -x c++ buildroot/share/PlatformIO/scripts/common-dependencies.h']
+	cmd += ['-D__MARLIN_DEPS__ -w -dM -E -x c++ buildroot/share/PlatformIO/scripts/common-dependencies.h']
 	cmd = ' '.join(cmd)
 	blab(cmd)
 	define_list = subprocess.check_output(cmd, shell=True).splitlines()
@@ -270,6 +301,16 @@ def MarlinFeatureIsEnabled(env, feature):
 	return some_on
 
 #
+# Check for Configfiles in two common incorrect places
+#
+def check_configfile_locations():
+	for p in [ env['PROJECT_DIR'], os.path.join(env['PROJECT_DIR'], "config") ]:
+		for f in [ "Configuration.h", "Configuration_adv.h" ]:
+			if os.path.isfile(os.path.join(p, f)):
+				err = 'ERROR: Config files found in directory ' + str(p) + '. Please move them into the Marlin subdirectory.'
+				raise SystemExit(err)
+
+#
 # Add a method for other PIO scripts to query enabled features
 #
 env.AddMethod(MarlinFeatureIsEnabled)
@@ -277,5 +318,6 @@ env.AddMethod(MarlinFeatureIsEnabled)
 #
 # Add dependencies for enabled Marlin features
 #
+check_configfile_locations()
 apply_features_config()
 force_ignore_unused_libs()

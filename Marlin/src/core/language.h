@@ -91,7 +91,7 @@
   #define MACHINE_UUID DEFAULT_MACHINE_UUID
 #endif
 
-#define MARLIN_WEBSITE_URL "https://marlinfw.org"
+#define MARLIN_WEBSITE_URL "marlinfw.org"
 
 //#if !defined(STRING_SPLASH_LINE3) && defined(WEBSITE_URL)
 //  #define STRING_SPLASH_LINE3 WEBSITE_URL
@@ -154,6 +154,7 @@
 #define STR_Z4_MIN                          "z4_min"
 #define STR_Z4_MAX                          "z4_max"
 #define STR_Z_PROBE                         "z_probe"
+#define STR_PROBE_EN                        "probe_en"
 #define STR_FILAMENT_RUNOUT_SENSOR          "filament"
 #define STR_PROBE_OFFSET                    "Probe Offset"
 #define STR_SKEW_MIN                        "min_skew_factor: "
@@ -303,7 +304,7 @@
 #define LCD_STR_C STR_C
 #define LCD_STR_E STR_E
 
-#if HAS_CHARACTER_LCD
+#if EITHER(HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL)
 
   // Custom characters defined in the first 8 characters of the LCD
   #define LCD_STR_BEDTEMP     "\x00" // Print only as a char. This will have 'unexpected' results when used in a string!
@@ -348,7 +349,6 @@
  * However, internal to Marlin E0/T0 is the first tool, and
  * most board silkscreens say "E0." Zero-based labels will
  * make these indexes consistent but this defies expectation.
- *
  */
 #if ENABLED(NUMBER_TOOLS_FROM_0)
   #define LCD_FIRST_TOOL 0
@@ -380,6 +380,10 @@
 #define LCD_STR_E5 "E" LCD_STR_N5
 #define LCD_STR_E6 "E" LCD_STR_N6
 #define LCD_STR_E7 "E" LCD_STR_N7
+
+// Use superscripts, if possible. Evaluated at point of use.
+#define SUPERSCRIPT_TWO   TERN(NOT_EXTENDED_ISO10646_1_5X7, "^2", "²")
+#define SUPERSCRIPT_THREE TERN(NOT_EXTENDED_ISO10646_1_5X7, "^3", "³")
 
 #include "multi_language.h"   // Allow multiple languages
 
